@@ -9,7 +9,7 @@ import static com.google.common.collect.Sets.newHashSet;
 @JsonDeserialize(converter = RESTEndpoint.ToCode.class)
 final class Code extends NamedObject {
 
-    private Set<String> values;
+    private final Set<String> values;
 
     Code(String name, String description, Set<String> values) {
         super(name, description);
