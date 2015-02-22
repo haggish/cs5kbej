@@ -63,31 +63,54 @@ public class RESTEndpoint {
     }
 
 
+    static class TempCodeSet {
+        public String name;
+        public String description;
+        public Set<Code> codes;
+    }
+
+    static class TempCode {
+        public String name;
+        public String description;
+        public Set<String> values;
+    }
+
     static final class ToCodeSet
-            extends StdConverter<ToCodeSet.TempCodeSet, CodeSet> {
+            extends StdConverter<TempCodeSet, CodeSet> {
         @Override
         public CodeSet convert(TempCodeSet value) {
             return new CodeSet(value.name, value.description, value.codes);
         }
+    }
 
-        static class TempCodeSet {
-            public String name;
-            public String description;
-            public Set<Code> codes;
+    static final class FromCodeSet
+            extends StdConverter<CodeSet, TempCodeSet> {
+        @Override
+        public TempCodeSet convert(CodeSet value) {
+            TempCodeSet temp = new TempCodeSet();
+            temp.name = value.name();
+            temp.description = value.description();
+            temp.codes = value.codes();
+            return temp;
         }
     }
 
     static final class ToCode
-            extends StdConverter<ToCode.TempCode, Code> {
+            extends StdConverter<TempCode, Code> {
         @Override
         public Code convert(TempCode value) {
             return new Code(value.name, value.description, value.values);
         }
+    }
 
-        static class TempCode {
-            public String name;
-            public String description;
-            public Set<String> values;
+    static final class FromCode extends StdConverter<Code, TempCode> {
+        @Override
+        public TempCode convert(Code value) {
+            TempCode temp = new TempCode();
+            temp.name = value.name();
+            temp.description = value.description();
+            temp.values = value.values();
+            return temp;
         }
     }
 }

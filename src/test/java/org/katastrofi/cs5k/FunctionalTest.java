@@ -1,7 +1,9 @@
 package org.katastrofi.cs5k;
 
+import com.jayway.restassured.http.ContentType;
 import org.junit.Test;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.is;
@@ -27,7 +29,8 @@ public class FunctionalTest {
     @Test
     public void codeSetCanBeAddedByName() {
         given()
-                .body("kak")
+                .contentType(ContentType.JSON)
+                .body(new CodeSet("CS01", "desc", newHashSet()))
         .when()
                 .put("/codesets/CS01")
         .then()
@@ -37,7 +40,8 @@ public class FunctionalTest {
     @Test
     public void codeCanBeAddedByNameAndCodeSetName() {
         given()
-                .body("kok")
+                .contentType(ContentType.JSON)
+                .body(new Code("C01", "desc", newHashSet()))
         .when()
                 .put("/codesets/CS01/C01")
         .then()

@@ -10,7 +10,7 @@ abstract class NamedObject {
 
 
     NamedObject(String name, String description) {
-        this.name = nonEmpty(name);
+        this.name = nonEmpty(name, "name");
         this.description = description;
     }
 
