@@ -6,6 +6,8 @@ import org.junit.Test;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
+import static org.apache.http.HttpStatus.SC_CREATED;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.hamcrest.Matchers.is;
 
 public class FunctionalTest {
@@ -15,7 +17,8 @@ public class FunctionalTest {
         when()
                 .get("/codesets")
         .then()
-                .body(is("get all codesets"));
+                .body("[0].name", is("CS01"))
+                .body("[0].codes[0].name", is("C01"));
     }
 
     @Test
@@ -23,7 +26,8 @@ public class FunctionalTest {
         when()
                 .get("/codesets/CS01")
         .then()
-                .body(is("get codeset CS01"));
+                .body("name", is("CS01"))
+                .body("codes[0].name", is("C01"));
     }
 
     @Test
@@ -34,7 +38,18 @@ public class FunctionalTest {
         .when()
                 .put("/codesets/CS01")
         .then()
-                .body(is("add or update codeset CS01"));
+                .statusCode(is(SC_NO_CONTENT));
+    }
+
+    @Test
+    public void codeSetCanBeUpdatedByName() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(new CodeSet("CS02", "desc", newHashSet()))
+        .when()
+                .put("/codesets/CS02")
+        .then()
+                .statusCode(is(SC_CREATED));
     }
 
     @Test
@@ -45,7 +60,18 @@ public class FunctionalTest {
         .when()
                 .put("/codesets/CS01/C01")
         .then()
-                .body(is("add or update code C01 in codeset CS01"));
+                .statusCode(is(SC_NO_CONTENT));
+    }
+
+    @Test
+    public void codeCanBeUpdatedByNameAndCodeSetName() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(new Code("C02", "desc", newHashSet()))
+        .when()
+                .put("/codesets/CS01/C02")
+        .then()
+                .statusCode(is(SC_CREATED));
     }
 
     @Test
@@ -53,14 +79,14 @@ public class FunctionalTest {
         when()
                 .delete("/codesets/CS01")
         .then()
-                .body(is("delete codeset CS01"));
+                .statusCode(is(SC_NO_CONTENT));
     }
 
     @Test
-    public void codeCanBeDeleteddByNameAndCodeSetName() {
+    public void codeCanBeDeletedByNameAndCodeSetName() {
         when()
                 .delete("/codesets/CS01/C01")
         .then()
-                .body(is("delete code C01 in codeset CS01"));
+                .statusCode(is(SC_NO_CONTENT));
     }
 }

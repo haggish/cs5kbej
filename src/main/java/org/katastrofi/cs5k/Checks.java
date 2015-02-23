@@ -11,7 +11,6 @@ final class Checks {
         if (checkNotNull(string, name + " may not be null").isEmpty()) {
             throw new IllegalArgumentException(name + " may not be empty");
         }
-        ;
         return string;
     }
 }

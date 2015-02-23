@@ -8,8 +8,8 @@ import java.util.Set;
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Sets.newHashSet;
 
-@JsonDeserialize(converter = RESTEndpoint.ToCode.class)
-@JsonSerialize(converter = RESTEndpoint.FromCode.class)
+@JsonDeserialize(converter = Protocols.ToCode.class)
+@JsonSerialize(converter = Protocols.FromCode.class)
 final class Code extends NamedObject {
 
     private final Set<String> values;
