@@ -2,6 +2,7 @@ package org.katastrofi.cs5k;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.sun.corba.se.impl.corba.TypeCodeImpl;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,5 +33,9 @@ final class CodeSet extends NamedObject {
 
     void remove(String codeName) {
         codes.remove(codeName);
+    }
+
+    Code code(String name) {
+        return codes.get(name);
     }
 }
