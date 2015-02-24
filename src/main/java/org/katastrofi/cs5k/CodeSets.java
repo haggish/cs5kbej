@@ -1,19 +1,42 @@
 package org.katastrofi.cs5k;
 
+import java.util.Optional;
 import java.util.Set;
 
-public interface CodeSets {
+/**
+ * Repository of code sets.
+ */
+interface CodeSets {
 
+    /**
+     * @return all the code sets
+     */
     Set<CodeSet> all();
 
-    CodeSet withName(String name);
+    /**
+     * @param name name for requested code set
+     * @return code set with given name, if any
+     */
+    Optional<CodeSet> withName(String name);
 
+    /**
+     * Removes all the code sets.
+     */
     void removeAll();
 
+    /**
+     * Removes code set of given name.
+     *
+     * @param name name for code set to be removed
+     */
     void removeWithName(String name);
 
-    boolean include(String name);
-
-    void addOrUpdate(CodeSet codeSet);
+    /**
+     * Adds new or updates existing code set
+     *
+     * @param codeSet added or updated code set
+     * @return whether the code set already existed
+     */
+    boolean addOrUpdate(CodeSet codeSet);
 
 }

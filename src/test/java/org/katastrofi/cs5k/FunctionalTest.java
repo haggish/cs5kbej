@@ -1,23 +1,24 @@
 package org.katastrofi.cs5k;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.jayway.restassured.RestAssured.delete;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.hamcrest.Matchers.is;
 
 public class FunctionalTest {
 
-    @BeforeClass
-    public static void init() {
+    @Before
+    public void init() {
         given()
                 .contentType(ContentType.JSON)
                 .body(new CodeSet("CS01", "desc",
@@ -26,8 +27,8 @@ public class FunctionalTest {
         .put("/codesets/CS01");
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         delete("/codesets");
     }
 
@@ -47,6 +48,14 @@ public class FunctionalTest {
         .then()
                 .body("name", is("CS01"))
                 .body("codes[0].name", is("C01"));
+    }
+
+    @Test
+    public void codeSetWithNonExistentNameReturnsNotFound() {
+        when()
+                .get("/codesets/CS03")
+        .then()
+                .statusCode(is(SC_NOT_FOUND));
     }
 
     @Test
@@ -72,6 +81,17 @@ public class FunctionalTest {
     }
 
     @Test
+    public void codeSetWithInconsistentNameIsBadRequest() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(new CodeSet("CS01", "desc", newHashSet()))
+                .when()
+                .put("/codesets/CS03")
+                .then()
+                .statusCode(is(SC_BAD_REQUEST));
+    }
+
+    @Test
     public void codeCanBeAddedByNameAndCodeSetName() {
         given()
                 .contentType(ContentType.JSON)
@@ -94,10 +114,40 @@ public class FunctionalTest {
     }
 
     @Test
+    public void addingCodeWithInconsistentNameIsBadRequest() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(new Code("C01", "desc", newHashSet()))
+        .when()
+                .put("/codesets/CS01/C03")
+        .then()
+                .statusCode(is(SC_BAD_REQUEST));
+    }
+
+    @Test
+    public void addingCodeToNonExistentCodeSetIsBadRequest() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(new Code("C01", "desc", newHashSet()))
+        .when()
+                .put("/codesets/CS03/C01")
+        .then()
+                .statusCode(is(SC_BAD_REQUEST));
+    }
+
+    @Test
     public void codeSetCanBeDeletedByName() {
         when()
                 .delete("/codesets/CS01")
-        .then()
+                .then()
+                .statusCode(is(SC_NO_CONTENT));
+    }
+
+    @Test
+    public void deletingNonExistentCodeSetIsOK() {
+        when()
+                .delete("/codesets/CS03")
+                .then()
                 .statusCode(is(SC_NO_CONTENT));
     }
 
@@ -105,6 +155,22 @@ public class FunctionalTest {
     public void codeCanBeDeletedByNameAndCodeSetName() {
         when()
                 .delete("/codesets/CS01/C01")
+        .then()
+                .statusCode(is(SC_NO_CONTENT));
+    }
+
+    @Test
+    public void deletingNonExistentCodeInExistingCodeSetIsOK() {
+        when()
+                .delete("/codesets/CS01/C03")
+        .then()
+                .statusCode(is(SC_NO_CONTENT));
+    }
+
+    @Test
+    public void deletingNonExistentCodeInNonExistentCodeSetIsBadRequest() {
+        when()
+                .delete("/codesets/CS03/C01")
         .then()
                 .statusCode(is(SC_NO_CONTENT));
     }

@@ -1,12 +1,13 @@
 package org.katastrofi.cs5k;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Maps.newHashMap;
 
-public class TransientCodeSets implements CodeSets {
+final class TransientCodeSets implements CodeSets {
 
     private final Map<String, CodeSet> codeSetsByNames = newHashMap();
 
@@ -17,8 +18,8 @@ public class TransientCodeSets implements CodeSets {
     }
 
     @Override
-    public CodeSet withName(String name) {
-        return codeSetsByNames.get(name);
+    public Optional<CodeSet> withName(String name) {
+        return Optional.ofNullable(codeSetsByNames.get(name));
     }
 
     @Override
@@ -32,12 +33,7 @@ public class TransientCodeSets implements CodeSets {
     }
 
     @Override
-    public boolean include(String name) {
-        return codeSetsByNames.containsKey(name);
-    }
-
-    @Override
-    public void addOrUpdate(CodeSet codeSet) {
-        codeSetsByNames.put(codeSet.name(), codeSet);
+    public boolean addOrUpdate(CodeSet codeSet) {
+        return codeSetsByNames.put(codeSet.name(), codeSet) != null;
     }
 }
