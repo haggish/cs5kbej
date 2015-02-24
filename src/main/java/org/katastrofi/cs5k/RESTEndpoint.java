@@ -1,5 +1,6 @@
 package org.katastrofi.cs5k;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -10,7 +11,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CREATED;
@@ -21,33 +21,41 @@ import static javax.ws.rs.core.Response.status;
 @Path("codesets")
 public class RESTEndpoint {
 
-    private final Set<CodeSet> all =
-            newHashSet(new CodeSet("CS01", "This is a demo codeset",
-                    newHashSet(new Code("C01", "This is a demo code",
-                            newHashSet("aValue")))));
+    private final CodeSets codeSets;
+
+
+    @Inject
+    public RESTEndpoint(final CodeSets codeSets) {
+        this.codeSets = codeSets;
+    }
+
 
     @GET
     @Produces(APPLICATION_JSON)
     public Set<CodeSet> all() {
-        return all;
+        return codeSets.all();
     }
 
     @GET
     @Path("/{name}")
     @Produces(APPLICATION_JSON)
     public CodeSet withName(@PathParam("name") String name) {
-        return all.iterator().next();
+        return codeSets.withName(name);
     }
 
     @PUT
     @Path("/{name}")
     @Consumes(APPLICATION_JSON)
-    public Response addOrUpdate(@PathParam("name") String name, CodeSet codeSet) {
-        if (existing(name)) {
-            return noContent().build();
-        } else {
-            return status(CREATED).build();
+    public Response addOrUpdate(@PathParam("name") String name,
+                                CodeSet codeSet) {
+        if (!codeSet.name().equals(name)) {
+            return status(BAD_REQUEST).build();
         }
+
+        boolean update = codeSets.include(name);
+        codeSets.addOrUpdate(codeSet);
+
+        return update ? noContent().build() : status(CREATED).build();
     }
 
     @PUT
@@ -57,12 +65,11 @@ public class RESTEndpoint {
             @PathParam("codeSetName") String codeSetName,
             @PathParam("codeName") String codeName,
             Code code) {
-        if (existing(codeSetName)) {
-            if (codeInSet(codeName, codeSetName)) {
-                return noContent().build();
-            } else {
-                return status(CREATED).build();
-            }
+
+        if (codeSets.include(codeSetName)) {
+            CodeSet codeSet = codeSets.withName(codeSetName);
+            boolean codeExists = codeSet.hasCodeNamed(codeName);
+            return codeExists ? noContent().build() : status(CREATED).build();
         } else {
             return status(BAD_REQUEST).build();
         }
@@ -70,12 +77,14 @@ public class RESTEndpoint {
 
     @DELETE
     public Response clear() {
+        codeSets.removeAll();
         return status(NO_CONTENT).build();
     }
 
     @DELETE
     @Path("/{name}")
     public Response removeWithName(@PathParam("name") String name) {
+        codeSets.removeWithName(name);
         return status(NO_CONTENT).build();
     }
 
@@ -85,14 +94,5 @@ public class RESTEndpoint {
             @PathParam("codeSetName") String codeSetName,
             @PathParam("codeName") String codeName) {
         return status(NO_CONTENT).build();
-    }
-
-
-    private boolean existing(String name) {
-        return "CS01".equals(name);
-    }
-
-    private boolean codeInSet(String codeName, String codeSetName) {
-        return "C01".equals(codeName);
     }
 }

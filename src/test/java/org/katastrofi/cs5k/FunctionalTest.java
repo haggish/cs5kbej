@@ -1,9 +1,13 @@
 package org.katastrofi.cs5k;
 
+import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static com.jayway.restassured.RestAssured.delete;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -11,6 +15,21 @@ import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.hamcrest.Matchers.is;
 
 public class FunctionalTest {
+
+    @BeforeClass
+    public static void init() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(new CodeSet("CS01", "desc",
+                        newHashSet(new Code("C01", "otherdesc",
+                                newHashSet("aValue")))))
+        .put("/codesets/CS01");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        delete("/codesets");
+    }
 
     @Test
     public void allCodeSetsCanBeQueried() {
