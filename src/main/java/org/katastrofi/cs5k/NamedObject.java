@@ -1,15 +1,27 @@
 package org.katastrofi.cs5k;
 
+import org.hibernate.annotations.NaturalId;
+
+import javax.persistence.MappedSuperclass;
+
 import static org.katastrofi.cs5k.Checks.nonEmpty;
 
-abstract class NamedObject {
+@MappedSuperclass
+abstract class NamedObject extends IdentifiableObject {
 
-    private final String name;
+    @NaturalId
+    private String name;
 
-    private final String description;
+    private String description;
 
+
+    @ForHibernateOnly
+    NamedObject() {
+        super();
+    }
 
     NamedObject(String name, String description) {
+        super();
         this.name = nonEmpty(name, "name");
         this.description = description;
     }

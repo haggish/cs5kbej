@@ -2,25 +2,44 @@ package org.katastrofi.cs5k;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.sun.corba.se.impl.corba.TypeCodeImpl;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static javax.persistence.CascadeType.ALL;
+import static org.hibernate.annotations.OnDeleteAction.CASCADE;
 
+@Entity
 @JsonDeserialize(converter = Protocols.ToCodeSet.class)
 @JsonSerialize(converter = Protocols.FromCodeSet.class)
-final class CodeSet extends NamedObject {
+final class CodeSet extends NamedObject implements Serializable {
 
-    private final Map<String, Code> codes;
+    @OneToMany(orphanRemoval = true, cascade = ALL)
+    @JoinColumn(name="csid")
+    @NonFinalForHibernate
+    private Map<String, Code> codes;
+
+
+    @ForHibernateOnly
+    CodeSet() {
+        super();
+    }
 
     CodeSet(String name, String description, Set<Code> codes) {
         super(name, description);
         this.codes = codes.stream().collect(toMap(Code::name, identity()));
     }
+
 
     Set<Code> codes() {
         return copyOf(codes.values());
@@ -37,5 +56,13 @@ final class CodeSet extends NamedObject {
 
     Code code(String name) {
         return codes.get(name);
+    }
+
+    @Override
+    public String toString() {
+        return "CodeSet{" +
+                super.toString() +
+                "codes=" + codes +
+                '}';
     }
 }
