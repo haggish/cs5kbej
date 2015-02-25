@@ -39,7 +39,7 @@ public class JPAPersistedCodeSets implements CodeSets {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<CodeSet> q = cb.createQuery(CodeSet.class);
         Root<CodeSet> root = q.from(CodeSet.class);
-        Predicate nameIsEqual = cb.equal(root.get("name"), name);
+        Predicate nameIsEqual = cb.equal(root.get(CodeSet_.name), name);
         q.where(nameIsEqual);
         TypedQuery<CodeSet> tq = entityManager.createQuery(q);
         return optionalOf(tq.getResultList());
