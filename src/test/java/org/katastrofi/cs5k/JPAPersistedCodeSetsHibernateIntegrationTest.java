@@ -18,6 +18,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
 
 public class JPAPersistedCodeSetsHibernateIntegrationTest {
 
@@ -100,6 +101,24 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
         }, "CS01");
         assertThat(inTX(testedJPAPersistedCodeSets::withName, "CS01"),
                 is(Optional.empty()));
+    }
+
+    @Test
+    public void updatingMergesUpdatesToPersistentCodeSet() {
+        CodeSet cs1 = inTX(testedJPAPersistedCodeSets::withName, "CS01").get();
+        Code c03 = new Code("C03", "new", newHashSet());
+        cs1.addOrUpdate(c03);
+        inTX(testedJPAPersistedCodeSets::addOrUpdate, cs1);
+        assertThat(inTX(testedJPAPersistedCodeSets::withName, "CS01").get()
+                .codes(), hasItem(c03));
+    }
+
+    @Test
+    public void addingAddsToPersistentCodeSet() {
+        CodeSet cs3 = new CodeSet("CS03", "baba", newHashSet());
+        inTX(testedJPAPersistedCodeSets::addOrUpdate, cs3);
+        assertThat(inTX(testedJPAPersistedCodeSets::withName, "CS03").get(),
+                is(cs3));
     }
 
 
