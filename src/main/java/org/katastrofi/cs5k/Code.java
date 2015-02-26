@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.newHashSet;
 import static javax.persistence.FetchType.EAGER;
 
@@ -41,5 +42,13 @@ final class Code extends NamedObject implements Serializable {
 
     Set<String> codevalues() {
         return copyOf(codevalues);
+    }
+
+
+    void mergeWith(Code updatedCode) {
+        super.mergeWith(updatedCode);
+        codevalues.removeAll(
+                difference(codevalues(), updatedCode.codevalues()));
+        codevalues.addAll(difference(updatedCode.codevalues(), codevalues()));
     }
 }

@@ -66,7 +66,7 @@ public class JPAPersistedCodeSets implements CodeSets {
     public boolean addOrUpdate(CodeSet codeSet) {
         Optional<CodeSet> possibleCodeSet = withName(codeSet.name());
         if (possibleCodeSet.isPresent()) {
-            entityManager.get().merge(codeSet);
+            possibleCodeSet.get().mergeWith(codeSet);
             return true;
         } else {
             entityManager.get().persist(codeSet);

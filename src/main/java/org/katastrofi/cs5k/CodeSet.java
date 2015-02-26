@@ -2,12 +2,8 @@ package org.katastrofi.cs5k;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import java.io.Serializable;
@@ -15,11 +11,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static com.google.common.collect.Sets.difference;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.EAGER;
-import static org.hibernate.annotations.OnDeleteAction.CASCADE;
 
 @Entity
 @JsonDeserialize(converter = Protocols.ToCodeSet.class)
@@ -27,7 +23,7 @@ import static org.hibernate.annotations.OnDeleteAction.CASCADE;
 final class CodeSet extends NamedObject implements Serializable {
 
     @OneToMany(orphanRemoval = true, cascade = ALL, fetch = EAGER)
-    @JoinColumn(name="csid")
+    @JoinColumn(name = "csid")
     @NonFinalForHibernate
     private Map<String, Code> codes;
 
@@ -49,7 +45,13 @@ final class CodeSet extends NamedObject implements Serializable {
 
 
     boolean addOrUpdate(Code code) {
-        return codes.put(code.name(), code) != null;
+        if (codes.containsValue(code)) {
+            code(code.name()).mergeWith(code);
+            return true;
+        } else {
+            codes.put(code.name(), code);
+            return false;
+        }
     }
 
     void remove(String codeName) {
@@ -66,5 +68,16 @@ final class CodeSet extends NamedObject implements Serializable {
                 super.toString() +
                 "codes=" + codes +
                 '}';
+    }
+
+    public CodeSet mergeWith(CodeSet updatedCodeSet) {
+        super.mergeWith(updatedCodeSet);
+        difference(codes(), updatedCodeSet.codes()).stream()
+                .forEach((Code c) -> codes.remove(c.name()));
+        codes().stream().forEach(
+                (Code c) -> c.mergeWith(updatedCodeSet.code(c.name())));
+        difference(updatedCodeSet.codes(), codes()).stream()
+                .forEach((Code c) -> codes.put(c.name(), c));
+        return this;
     }
 }

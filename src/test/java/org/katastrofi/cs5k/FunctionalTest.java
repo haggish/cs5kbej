@@ -17,14 +17,20 @@ import static org.hamcrest.Matchers.is;
 
 public class FunctionalTest {
 
+    private CodeSet cs01;
+
+    private Code c01;
+
     @Before
     public void init() {
+        c01 = new Code("C01", "otherdesc",
+                newHashSet("aValue"));
+        cs01 = new CodeSet("CS01", "desc", newHashSet(c01));
+
         delete("/codesets");
         given()
                 .contentType(ContentType.JSON)
-                .body(new CodeSet("CS01", "desc",
-                        newHashSet(new Code("C01", "otherdesc",
-                                newHashSet("aValue")))))
+                .body(cs01)
         .put("/codesets/CS01");
     }
 
@@ -38,17 +44,17 @@ public class FunctionalTest {
         when()
                 .get("/codesets")
         .then()
-                .body("[0].name", is("CS01"))
-                .body("[0].codes[0].name", is("C01"));
+                .body("[0].name", is(cs01.name()))
+                .body("[0].codes[0].name", is(c01.name()));
     }
 
     @Test
     public void codeSetCanBeQueriedByName() {
         when()
-                .get("/codesets/CS01")
+                .get("/codesets/{name}", cs01.name())
         .then()
-                .body("name", is("CS01"))
-                .body("codes[0].name", is("C01"));
+                .body("name", is(cs01.name()))
+                .body("codes[0].name", is(c01.name()));
     }
 
     @Test
@@ -60,21 +66,21 @@ public class FunctionalTest {
     }
 
     @Test
-    public void codeSetCanBeAddedByName() {
+    public void codeSetCanBeUpdatedByName() {
         given()
                 .contentType(ContentType.JSON)
-                .body(new CodeSet("CS01", "desc", newHashSet()))
+                .body(new CodeSet(cs01.name(), "newdesc", cs01.codes()))
         .when()
-                .put("/codesets/CS01")
+                .put("/codesets/{name}", cs01.name())
         .then()
                 .statusCode(is(SC_NO_CONTENT));
     }
 
     @Test
-    public void codeSetCanBeUpdatedByName() {
+    public void codeSetCanBeAddedByName() {
         given()
                 .contentType(ContentType.JSON)
-                .body(new CodeSet("CS02", "desc", newHashSet()))
+                .body(new CodeSet("CS02", "otherdesc", newHashSet()))
         .when()
                 .put("/codesets/CS02")
         .then()
@@ -86,30 +92,30 @@ public class FunctionalTest {
         given()
                 .contentType(ContentType.JSON)
                 .body(new CodeSet("CS01", "desc", newHashSet()))
-                .when()
-                .put("/codesets/CS03")
-                .then()
-                .statusCode(is(SC_BAD_REQUEST));
-    }
-
-    @Test
-    public void codeCanBeAddedByNameAndCodeSetName() {
-        given()
-                .contentType(ContentType.JSON)
-                .body(new Code("C01", "desc", newHashSet()))
         .when()
-                .put("/codesets/CS01/C01")
+                .put("/codesets/CS03")
         .then()
-                .statusCode(is(SC_NO_CONTENT));
+                .statusCode(is(SC_BAD_REQUEST));
     }
 
     @Test
     public void codeCanBeUpdatedByNameAndCodeSetName() {
         given()
                 .contentType(ContentType.JSON)
+                .body(new Code(c01.name(), "newdesc", c01.codevalues()))
+        .when()
+                .put("/codesets/{csid}/{cid}", cs01.name(), c01.name())
+        .then()
+                .statusCode(is(SC_NO_CONTENT));
+    }
+
+    @Test
+    public void codeCanBeAddedByNameAndCodeSetName() {
+        given()
+                .contentType(ContentType.JSON)
                 .body(new Code("C02", "desc", newHashSet()))
         .when()
-                .put("/codesets/CS01/C02")
+                .put("/codesets/{csid}/C02", cs01.name())
         .then()
                 .statusCode(is(SC_CREATED));
     }
@@ -139,8 +145,8 @@ public class FunctionalTest {
     @Test
     public void codeSetCanBeDeletedByName() {
         when()
-                .delete("/codesets/CS01")
-                .then()
+                .delete("/codesets/{id}", cs01.name())
+        .then()
                 .statusCode(is(SC_NO_CONTENT));
     }
 
@@ -148,14 +154,14 @@ public class FunctionalTest {
     public void deletingNonExistentCodeSetIsOK() {
         when()
                 .delete("/codesets/CS03")
-                .then()
+        .then()
                 .statusCode(is(SC_NO_CONTENT));
     }
 
     @Test
     public void codeCanBeDeletedByNameAndCodeSetName() {
         when()
-                .delete("/codesets/CS01/C01")
+                .delete("/codesets/{csid}/{cid}", cs01.name(), c01.name())
         .then()
                 .statusCode(is(SC_NO_CONTENT));
     }
@@ -163,7 +169,7 @@ public class FunctionalTest {
     @Test
     public void deletingNonExistentCodeInExistingCodeSetIsOK() {
         when()
-                .delete("/codesets/CS01/C03")
+                .delete("/codesets/{csid}/C03", cs01.name())
         .then()
                 .statusCode(is(SC_NO_CONTENT));
     }

@@ -36,6 +36,13 @@ abstract class NamedObject extends IdentifiableObject {
     }
 
 
+    void mergeWith(NamedObject updatedCodeSet) {
+        if (updatedCodeSet.description().equals(updatedCodeSet.description())) {
+            this.description = updatedCodeSet.description();
+        }
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
