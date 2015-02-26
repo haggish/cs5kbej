@@ -19,6 +19,7 @@ public class FunctionalTest {
 
     @Before
     public void init() {
+        delete("/codesets");
         given()
                 .contentType(ContentType.JSON)
                 .body(new CodeSet("CS01", "desc",

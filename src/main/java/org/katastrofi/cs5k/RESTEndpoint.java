@@ -1,6 +1,9 @@
 package org.katastrofi.cs5k;
 
+import com.google.inject.persist.Transactional;
+
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -21,8 +24,9 @@ import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
 
+@Singleton
 @Path("codesets")
-public final class RESTEndpoint {
+public class RESTEndpoint {
 
     private final CodeSets codeSets;
 
@@ -35,6 +39,7 @@ public final class RESTEndpoint {
 
     @GET
     @Produces(APPLICATION_JSON)
+    @Transactional
     public Set<CodeSet> all() {
         return codeSets.all();
     }
@@ -42,6 +47,7 @@ public final class RESTEndpoint {
     @GET
     @Path("/{name}")
     @Produces(APPLICATION_JSON)
+    @Transactional
     public Response withName(@PathParam("name") String name) {
         Optional<CodeSet> possibleCodeSet = codeSets.withName(name);
         if (possibleCodeSet.isPresent()) {
@@ -54,6 +60,7 @@ public final class RESTEndpoint {
     @PUT
     @Path("/{name}")
     @Consumes(APPLICATION_JSON)
+    @Transactional
     public Response addOrUpdate(@PathParam("name") String codeSetName,
                                 CodeSet codeSet) {
         if (!codeSet.name().equals(codeSetName)) {
@@ -68,6 +75,7 @@ public final class RESTEndpoint {
     @PUT
     @Path("/{codeSetName}/{codeName}")
     @Consumes(APPLICATION_JSON)
+    @Transactional
     public Response addOrUpdateCodeSetsCode(
             @PathParam("codeSetName") String codeSetName,
             @PathParam("codeName") String codeName,
@@ -87,6 +95,7 @@ public final class RESTEndpoint {
     }
 
     @DELETE
+    @Transactional
     public Response clear() {
         codeSets.removeAll();
         return status(NO_CONTENT).build();
@@ -94,6 +103,7 @@ public final class RESTEndpoint {
 
     @DELETE
     @Path("/{name}")
+    @Transactional
     public Response removeWithName(@PathParam("name") String name) {
         codeSets.removeWithName(name);
         return status(NO_CONTENT).build();
@@ -101,6 +111,7 @@ public final class RESTEndpoint {
 
     @DELETE
     @Path("/{codeSetName}/{codeName}")
+    @Transactional
     public Response removeCodeSetsCode(
             @PathParam("codeSetName") String codeSetName,
             @PathParam("codeName") String codeName) {

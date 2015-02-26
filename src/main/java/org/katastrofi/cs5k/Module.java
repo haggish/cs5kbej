@@ -10,7 +10,7 @@ public class Module implements com.google.inject.Module {
         binder.bind(RESTEndpoint.class)
                 .in(Singleton.class);
         binder.bind(CodeSets.class)
-                .to(TransientCodeSets.class).in(Singleton.class);
+                .to(JPAPersistedCodeSets.class).in(Singleton.class);
     }
 
 }

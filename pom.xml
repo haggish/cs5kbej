@@ -73,7 +73,7 @@
                 <configuration>
                     <includes>
                         <include>**/*FunctionalTest.java</include>
-                        <include>**/*IntegrationTest.java</include>
+                        <!-- <include>**/*IntegrationTest.java</include> -->
                     </includes>
                 </configuration>
             </plugin>
@@ -135,6 +135,12 @@
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-servlet-initializer</artifactId>
             <version>3.0.10.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-persist</artifactId>
+            <version>4.0-beta5</version>
         </dependency>
 
         <dependency>

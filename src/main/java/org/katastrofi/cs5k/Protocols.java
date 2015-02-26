@@ -56,7 +56,7 @@ final class Protocols {
             TempCode temp = new TempCode();
             temp.name = value.name();
             temp.description = value.description();
-            temp.values = value.values();
+            temp.values = value.codevalues();
             return temp;
         }
     }

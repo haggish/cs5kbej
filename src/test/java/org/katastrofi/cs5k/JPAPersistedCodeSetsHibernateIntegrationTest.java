@@ -1,5 +1,6 @@
 package org.katastrofi.cs5k;
 
+import com.google.inject.Provider;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -24,7 +25,7 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
 
     private static EntityManagerFactory emf;
 
-    private static EntityManager em;
+    private static Provider<EntityManager> emp;
 
     private JPAPersistedCodeSets testedJPAPersistedCodeSets;
 
@@ -45,14 +46,14 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
 
     @After
     public void closeEM() {
-        em.close();
+        emp.get().close();
     }
 
     @Before
     public void init() {
-        em = emf.createEntityManager();
+        emp = emf::createEntityManager;
 
-        testedJPAPersistedCodeSets = new JPAPersistedCodeSets(em);
+        testedJPAPersistedCodeSets = new JPAPersistedCodeSets(emp);
 
         inTX(testedJPAPersistedCodeSets::removeAll);
 
@@ -62,6 +63,7 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
             cs01 = new CodeSet("CS01", "desc", newHashSet(c01, c02));
             cs02 = new CodeSet("CS02", "desc2", newHashSet());
 
+            EntityManager em = emp.get();
             em.persist(cs01);
             em.persist(cs02);
         });
@@ -140,7 +142,7 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
     private static <I, O> O inTX(Function<I, O> action, I input) {
         EntityTransaction et = null;
         try {
-            et = em.getTransaction();
+            et = emp.get().getTransaction();
             et.begin();
             O output = action.apply(input);
             et.commit();

@@ -3,12 +3,14 @@
 
     <context-param>
         <param-name>resteasy.guice.modules</param-name>
-        <param-value>org.katastrofi.cs5k.Module</param-value>
+        <param-value>
+            com.google.inject.persist.jpa.JpaPersistModule,org.katastrofi.cs5k.Module
+        </param-value>
     </context-param>
 
     <listener>
         <listener-class>
-            org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener
+            org.katastrofi.cs5k.ServletContextListener
         </listener-class>
     </listener>
 

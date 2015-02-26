@@ -23,7 +23,7 @@ public class CodeSetTest {
         code2 = new Code("C02", "Code 2", newHashSet());
         existingCode = code2;
         updatedExistingCode = new Code(existingCode.name(), "New desc",
-                existingCode.values());
+                existingCode.codevalues());
         newCode = new Code("C03", "Code 3", newHashSet());
         testedCodeSet =
                 new CodeSet("CS01", "Code Set 1", newHashSet(code1, code2));

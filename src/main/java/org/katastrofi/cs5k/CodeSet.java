@@ -7,6 +7,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import java.io.Serializable;
@@ -17,6 +18,7 @@ import static com.google.common.collect.ImmutableSet.copyOf;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.FetchType.EAGER;
 import static org.hibernate.annotations.OnDeleteAction.CASCADE;
 
 @Entity
@@ -24,7 +26,7 @@ import static org.hibernate.annotations.OnDeleteAction.CASCADE;
 @JsonSerialize(converter = Protocols.FromCodeSet.class)
 final class CodeSet extends NamedObject implements Serializable {
 
-    @OneToMany(orphanRemoval = true, cascade = ALL)
+    @OneToMany(orphanRemoval = true, cascade = ALL, fetch = EAGER)
     @JoinColumn(name="csid")
     @NonFinalForHibernate
     private Map<String, Code> codes;

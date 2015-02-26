@@ -2,7 +2,6 @@ package org.katastrofi.cs5k;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.hibernate.annotations.OnDelete;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -14,19 +13,19 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hibernate.annotations.OnDeleteAction.CASCADE;
+import static javax.persistence.FetchType.EAGER;
 
 @Entity
 @JsonDeserialize(converter = Protocols.ToCode.class)
 @JsonSerialize(converter = Protocols.FromCode.class)
 final class Code extends NamedObject implements Serializable {
 
-    @ElementCollection
-    @CollectionTable(name = "values",
-            joinColumns = @JoinColumn(name = "value_id"))
-    @Column(name = "value")
+    @ElementCollection(fetch = EAGER)
+    @CollectionTable(name = "codevalues",
+            joinColumns = @JoinColumn(name = "cvalue_id"))
+    @Column(name = "codevalue")
     @NonFinalForHibernate
-    private Set<String> values;
+    private Set<String> codevalues;
 
 
     @ForHibernateOnly
@@ -34,13 +33,13 @@ final class Code extends NamedObject implements Serializable {
         super();
     }
 
-    Code(String name, String description, Set<String> values) {
+    Code(String name, String description, Set<String> codevalues) {
         super(name, description);
-        this.values = newHashSet(values);
+        this.codevalues = newHashSet(codevalues);
     }
 
 
-    Set<String> values() {
-        return copyOf(values);
+    Set<String> codevalues() {
+        return copyOf(codevalues);
     }
 }
