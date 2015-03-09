@@ -34,96 +34,101 @@ public class EffectivityConverterTest {
     @Test
     public void allIsConvertedToRightSqBracketCommaLeftSqBracket() {
         assertThat(testedEffectivityConverter
-                .convertToDatabaseColumn(all()), is("],["));
+                .convertToDatabaseColumn(new Effectivity(all())), is("],["));
     }
 
     @Test
     public void upToClosedAIsConvertedToRightSqBracketCommaAStringRightSqBracket() {
         assertThat(testedEffectivityConverter
-                        .convertToDatabaseColumn(upTo(a, CLOSED)),
+                        .convertToDatabaseColumn(
+                                new Effectivity(upTo(a, CLOSED))),
                 is(format("],%s]", a.toString())));
     }
 
     @Test
     public void upToOpenAIsConvertedToRightSqBracketCommaAStringLeftSqBracket() {
         assertThat(testedEffectivityConverter
-                        .convertToDatabaseColumn(upTo(a, OPEN)),
+                        .convertToDatabaseColumn(
+                                new Effectivity(upTo(a, OPEN))),
                 is(format("],%s[", a.toString())));
     }
 
     @Test
     public void downToClosedAIsConvertedToLeftSqBracketAStringCommaLeftSqBracket() {
         assertThat(testedEffectivityConverter
-                        .convertToDatabaseColumn(downTo(a, CLOSED)),
+                        .convertToDatabaseColumn(
+                                new Effectivity(downTo(a, CLOSED))),
                 is(format("[%s,[", a.toString())));
     }
 
     @Test
     public void downToOpenAIsConvertedToRightSqBracketAStringCommaLeftSqBracket() {
         assertThat(testedEffectivityConverter
-                        .convertToDatabaseColumn(downTo(a, OPEN)),
+                        .convertToDatabaseColumn(
+                                new Effectivity(downTo(a, OPEN))),
                 is(format("]%s,[", a.toString())));
     }
 
     @Test
     public void openABIsConvertedToRightSqBracketAStringCommaBStringLeftSqBracket() {
         assertThat(testedEffectivityConverter
-                        .convertToDatabaseColumn(open(a, b)),
+                        .convertToDatabaseColumn(
+                                new Effectivity(open(a, b))),
                 is(format("]%s,%s[", a.toString(), b.toString())));
     }
 
     @Test
     public void closedABIsConvertedToLeftSqBracketAStringCommaBStringRightSqBracket() {
         assertThat(testedEffectivityConverter
-                        .convertToDatabaseColumn(closed(a, b)),
+                        .convertToDatabaseColumn(new Effectivity(closed(a, b))),
                 is(format("[%s,%s]", a.toString(), b.toString())));
     }
 
     @Test
     public void rightSqBracketCommaLeftSqBracketIsAll() {
         assertThat(testedEffectivityConverter.convertToEntityAttribute("],["),
-                is(all()));
+                is(new Effectivity(all())));
     }
 
     @Test
     public void rightSqBracketCommaAStringRightSqBracketIsRangeUpToClosedA() {
         assertThat(testedEffectivityConverter
                         .convertToEntityAttribute(format("],%s]", a.toString())),
-                is(upTo(a, CLOSED)));
+                is(new Effectivity(upTo(a, CLOSED))));
     }
 
     @Test
     public void rightSqBracketCommaAStringLeftSqBracketIsUpToOpenA() {
         assertThat(testedEffectivityConverter.convertToEntityAttribute(
                         format("],%s[", a.toString())),
-                is(upTo(a, OPEN)));
+                is(new Effectivity(upTo(a, OPEN))));
     }
 
     @Test
     public void leftSqBracketAStringCommaLeftSqBracketIsDownToClosedA() {
         assertThat(testedEffectivityConverter.convertToEntityAttribute(
                         format("[%s,[", a.toString())),
-                is(downTo(a, CLOSED)));
+                is(new Effectivity(downTo(a, CLOSED))));
     }
 
     @Test
     public void rightSqBracketAStringCommaLeftSqBracketIsDownToOpenA() {
         assertThat(testedEffectivityConverter.convertToEntityAttribute(
                         format("]%s,[", a.toString())),
-                is(downTo(a, OPEN)));
+                is(new Effectivity(downTo(a, OPEN))));
     }
 
     @Test
     public void rightSqBracketAStringCommaBStringLeftSqBracketIsOpenAB() {
         assertThat(testedEffectivityConverter.convertToEntityAttribute(
                         format("]%s,%s[", a.toString(), b.toString())),
-                is(open(a, b)));
+                is(new Effectivity(open(a, b))));
     }
 
     @Test
     public void leftSqBracketAStringCommaBStringRightSqBracketIsClosedAB() {
         assertThat(testedEffectivityConverter.convertToEntityAttribute(
                         format("[%s,%s]", a.toString(), b.toString())),
-                is(closed(a, b)));
+                is(new Effectivity(closed(a, b))));
     }
 }

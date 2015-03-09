@@ -14,12 +14,13 @@ import static com.google.common.collect.Range.range;
 import static com.google.common.collect.Range.upTo;
 import static java.time.LocalDateTime.parse;
 
-@Converter
+@Converter(autoApply = true)
 public class EffectivityConverter
-        implements AttributeConverter<Range<LocalDateTime>, String> {
+        implements AttributeConverter<Effectivity, String> {
 
     @Override
-    public String convertToDatabaseColumn(Range<LocalDateTime> attribute) {
+    public String convertToDatabaseColumn(Effectivity effectivity) {
+        Range<LocalDateTime> attribute = effectivity.timeRange();
         StringBuilder sb = new StringBuilder();
         if (!attribute.hasLowerBound() || attribute.lowerBoundType() == OPEN) {
             sb.append(']');
@@ -43,7 +44,7 @@ public class EffectivityConverter
 
     // TODO clean up this mindstream-codeball-of-mud-monster
     @Override
-    public Range<LocalDateTime> convertToEntityAttribute(String dbData) {
+    public Effectivity convertToEntityAttribute(String dbData) {
         String[] startAndEnd = dbData.split(",");
         String start = startAndEnd[0];
         String end = startAndEnd[1];
@@ -79,14 +80,15 @@ public class EffectivityConverter
                         parse(end.substring(0, end.length() - 1));
 
         if (startDate == null && endDate == null) {
-            return all();
+            return new Effectivity(all());
         } else if (startDate != null && endDate != null) {
-            return range(startDate, startsOpen ? OPEN : CLOSED,
-                    endDate, endsOpen ? OPEN : CLOSED);
+            return new Effectivity(range(startDate, startsOpen ? OPEN : CLOSED,
+                    endDate, endsOpen ? OPEN : CLOSED));
         } else if (startDate == null) {
-            return upTo(endDate, endsOpen ? OPEN : CLOSED);
+            return new Effectivity(upTo(endDate, endsOpen ? OPEN : CLOSED));
         } else {
-            return downTo(startDate, startsOpen ? OPEN : CLOSED);
+            return new Effectivity(
+                    downTo(startDate, startsOpen ? OPEN : CLOSED));
         }
     }
 }

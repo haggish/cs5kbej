@@ -2,6 +2,7 @@ package org.katastrofi.cs5k;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Range;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -9,6 +10,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
@@ -28,14 +30,17 @@ final class Code extends NamedObject implements Serializable {
     @NonFinalForHibernate
     private Set<String> codevalues;
 
+    private Effectivity effectivity;
 
     @ForHibernateOnly
     Code() {
         super();
+        effectivity = new Effectivity(Range.all());
     }
 
     Code(String name, String description, Set<String> codevalues) {
         super(name, description);
+        effectivity = new Effectivity(Range.all());
         this.codevalues = newHashSet(codevalues);
     }
 
