@@ -36,9 +36,9 @@ abstract class NamedObject extends IdentifiableObject {
     }
 
 
-    void mergeWith(NamedObject updatedCodeSet) {
-        if (updatedCodeSet.description().equals(updatedCodeSet.description())) {
-            this.description = updatedCodeSet.description();
+    void mergeWith(NamedObject otherNamedObject) {
+        if (!otherNamedObject.description().equals(description())) {
+            this.description = otherNamedObject.description();
         }
     }
 

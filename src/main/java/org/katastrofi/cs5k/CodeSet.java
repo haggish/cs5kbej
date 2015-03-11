@@ -45,7 +45,7 @@ final class CodeSet extends NamedObject implements Serializable {
 
 
     boolean addOrUpdate(Code code) {
-        if (codes.containsValue(code)) {
+        if (codes.containsKey(code.name())) {
             code(code.name()).mergeWith(code);
             return true;
         } else {
@@ -72,12 +72,19 @@ final class CodeSet extends NamedObject implements Serializable {
 
     public CodeSet mergeWith(CodeSet updatedCodeSet) {
         super.mergeWith(updatedCodeSet);
-        difference(codes(), updatedCodeSet.codes()).stream()
-                .forEach((Code c) -> codes.remove(c.name()));
-        codes().stream().forEach(
-                (Code c) -> c.mergeWith(updatedCodeSet.code(c.name())));
-        difference(updatedCodeSet.codes(), codes()).stream()
-                .forEach((Code c) -> codes.put(c.name(), c));
+        removeCodesNotEqualToAnyIn(updatedCodeSet);
+        addCodesNotEqualToAnyInOldCodeSetFrom(updatedCodeSet);
         return this;
+    }
+
+
+    private void addCodesNotEqualToAnyInOldCodeSetFrom(CodeSet updatedCodeSet) {
+        difference(updatedCodeSet.codes(), codes()).stream()
+                .forEach(c -> codes.put(c.name(), c));
+    }
+
+    private void removeCodesNotEqualToAnyIn(CodeSet updatedCodeSet) {
+        difference(codes(), updatedCodeSet.codes()).stream()
+                .forEach(c -> codes.remove(c.name()));
     }
 }
