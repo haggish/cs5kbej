@@ -11,11 +11,12 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Sets.difference;
-import static com.google.common.collect.Sets.newHashSet;
+import static java.util.stream.Collectors.toMap;
 import static javax.persistence.FetchType.EAGER;
 
 @Entity
@@ -28,7 +29,7 @@ final class Code extends NamedObject implements Serializable {
             joinColumns = @JoinColumn(name = "cvalue_id"))
     @Column(name = "codevalue")
     @NonFinalForHibernate
-    private Set<String> codevalues;
+    private Map<Effectivity, String> codevalues;
 
     private Effectivity effectivity;
 
@@ -38,22 +39,28 @@ final class Code extends NamedObject implements Serializable {
         effectivity = new Effectivity(Range.all());
     }
 
-    Code(String name, String description, Set<String> codevalues) {
+    Code(String name, String description,
+         Map<Range<LocalDateTime>, String> codevalues) {
         super(name, description);
         effectivity = new Effectivity(Range.all());
-        this.codevalues = newHashSet(codevalues);
+        this.codevalues = codevalues.entrySet().stream().collect(toMap(
+                e -> new Effectivity(e.getKey()),
+                Map.Entry::getValue));
     }
 
 
-    Set<String> codevalues() {
-        return copyOf(codevalues);
+    Map<Range<LocalDateTime>, String> codevalues() {
+        return codevalues.entrySet().stream().collect(toMap(
+                e -> e.getKey().timeRange(),
+                Map.Entry::getValue));
     }
-
 
     void mergeWith(Code updatedCode) {
         super.mergeWith(updatedCode);
-        codevalues.removeAll(
-                difference(codevalues(), updatedCode.codevalues()));
-        codevalues.addAll(difference(updatedCode.codevalues(), codevalues()));
+        difference(codevalues.keySet(), updatedCode.codevalues.keySet())
+                .stream().forEach(codevalues::remove);
+        difference(updatedCode.codevalues.entrySet(), codevalues.entrySet())
+                .stream().forEach(
+                e -> codevalues.put(e.getKey(), e.getValue()));
     }
 }

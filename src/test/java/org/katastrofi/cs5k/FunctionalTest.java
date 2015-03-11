@@ -1,10 +1,15 @@
 package org.katastrofi.cs5k;
 
+import com.google.common.collect.Range;
 import com.jayway.restassured.http.ContentType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.jayway.restassured.RestAssured.delete;
 import static com.jayway.restassured.RestAssured.given;
@@ -23,8 +28,9 @@ public class FunctionalTest {
 
     @Before
     public void init() {
-        c01 = new Code("C01", "otherdesc",
-                newHashSet("aValue"));
+        Map<Range<LocalDateTime>, String> values = newHashMap();
+        values.put(Range.all(), "aValue");
+        c01 = new Code("C01", "otherdesc", values);
         cs01 = new CodeSet("CS01", "desc", newHashSet(c01));
 
         delete("/codesets");
@@ -113,7 +119,7 @@ public class FunctionalTest {
     public void codeCanBeAddedByNameAndCodeSetName() {
         given()
                 .contentType(ContentType.JSON)
-                .body(new Code("C02", "desc", newHashSet()))
+                .body(new Code("C02", "desc", newHashMap()))
         .when()
                 .put("/codesets/{csid}/C02", cs01.name())
         .then()
@@ -124,7 +130,7 @@ public class FunctionalTest {
     public void addingCodeWithInconsistentNameIsBadRequest() {
         given()
                 .contentType(ContentType.JSON)
-                .body(new Code("C01", "desc", newHashSet()))
+                .body(new Code("C01", "desc", newHashMap()))
         .when()
                 .put("/codesets/CS01/C03")
         .then()
@@ -135,7 +141,7 @@ public class FunctionalTest {
     public void addingCodeToNonExistentCodeSetIsBadRequest() {
         given()
                 .contentType(ContentType.JSON)
-                .body(new Code("C01", "desc", newHashSet()))
+                .body(new Code("C01", "desc", newHashMap()))
         .when()
                 .put("/codesets/CS03/C01")
         .then()

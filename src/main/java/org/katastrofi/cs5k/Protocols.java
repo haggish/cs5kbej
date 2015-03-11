@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 
 import java.util.Set;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 final class Protocols {
 
     private Protocols() {
@@ -19,7 +22,19 @@ final class Protocols {
     }
 
     static class TempCode extends TempNamedObject {
-        public Set<String> values;
+        public Set<TempValue> values;
+    }
+
+    static class TempValue {
+        private static TempValue from(Effectivity effectivity, String value) {
+            TempValue tv = new TempValue();
+            tv.effectivityString = effectivity.toString();
+            tv.value = value;
+            return tv;
+        }
+
+        public String effectivityString;
+        public String value;
     }
 
     static final class ToCodeSet
@@ -46,7 +61,11 @@ final class Protocols {
             extends StdConverter<TempCode, Code> {
         @Override
         public Code convert(TempCode value) {
-            return new Code(value.name, value.description, value.values);
+            return new Code(value.name, value.description, value.values.stream()
+                    .collect(toMap(
+                            e -> Effectivity.from(e.effectivityString)
+                                    .timeRange(),
+                            e -> e.value)));
         }
     }
 
@@ -56,7 +75,10 @@ final class Protocols {
             TempCode temp = new TempCode();
             temp.name = value.name();
             temp.description = value.description();
-            temp.values = value.codevalues();
+            temp.values = value.codevalues().entrySet().stream().map(
+                    e -> TempValue.from(
+                            new Effectivity(e.getKey()), e.getValue()))
+                    .collect(toSet());
             return temp;
         }
     }

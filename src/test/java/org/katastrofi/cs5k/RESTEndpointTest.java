@@ -9,6 +9,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Optional.empty;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -42,9 +43,9 @@ public class RESTEndpointTest {
         testedRESTEndpoint = new RESTEndpoint(mockCodeSets);
         existingCodeSet = new CodeSet("CS01", "desc", newHashSet());
         newCodeSet = new CodeSet("CS02", "desc", newHashSet());
-        existingCode = new Code("C01", "desc", newHashSet());
+        existingCode = new Code("C01", "desc", newHashMap());
         existingCodeSet.addOrUpdate(existingCode);
-        newCode = new Code("C02", "desc", newHashSet());
+        newCode = new Code("C02", "desc", newHashMap());
 
         when(mockCodeSets.withName(existingCodeSet.name()))
                 .thenReturn(Optional.of(existingCodeSet));

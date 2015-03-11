@@ -1,5 +1,7 @@
 package org.katastrofi.cs5k;
 
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
 import com.google.inject.Provider;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -12,9 +14,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Range.atMost;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -58,8 +64,15 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
         inTX(testedJPAPersistedCodeSets::removeAll);
 
         inTX(() -> {
-            c01 = new Code("C01", "codesc", newHashSet("1"));
-            c02 = new Code("C02", "codesc2", newHashSet("2", "3"));
+            LocalDateTime _12_00_01_01_2015 =
+                    LocalDateTime.of(2015, 1, 1, 12, 0);
+            Map<Range<LocalDateTime>, String> map = newHashMap();
+            map.put(atMost(_12_00_01_01_2015), "1");
+            c01 = new Code("C01", "codesc", map);
+            map = newHashMap();
+            map.put(atMost(_12_00_01_01_2015), "2");
+            map.put(Range.downTo(_12_00_01_01_2015, BoundType.OPEN), "3");
+            c02 = new Code("C02", "codesc2", map);
             cs01 = new CodeSet("CS01", "desc", newHashSet(c01, c02));
             cs02 = new CodeSet("CS02", "desc2", newHashSet());
 
@@ -108,7 +121,7 @@ public class JPAPersistedCodeSetsHibernateIntegrationTest {
     @Test
     public void updatingMergesUpdatesToPersistentCodeSet() {
         CodeSet cs1 = inTX(testedJPAPersistedCodeSets::withName, "CS01").get();
-        Code c03 = new Code("C03", "new", newHashSet());
+        Code c03 = new Code("C03", "new", newHashMap());
         cs1.addOrUpdate(c03);
         inTX(testedJPAPersistedCodeSets::addOrUpdate, cs1);
         assertThat(inTX(testedJPAPersistedCodeSets::withName, "CS01").get()

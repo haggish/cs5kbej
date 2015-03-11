@@ -3,7 +3,11 @@ package org.katastrofi.cs5k;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
+
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -19,12 +23,12 @@ public class CodeSetTest {
 
     @Before
     public void init() {
-        code1 = new Code("C01", "Code 1", newHashSet());
-        code2 = new Code("C02", "Code 2", newHashSet());
+        code1 = new Code("C01", "Code 1", emptyMap());
+        code2 = new Code("C02", "Code 2", emptyMap());
         existingCode = code2;
         updatedExistingCode = new Code(existingCode.name(), "New desc",
                 existingCode.codevalues());
-        newCode = new Code("C03", "Code 3", newHashSet());
+        newCode = new Code("C03", "Code 3", emptyMap());
         testedCodeSet =
                 new CodeSet("CS01", "Code Set 1", newHashSet(code1, code2));
     }
