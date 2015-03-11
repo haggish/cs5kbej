@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.ws.rs.BadRequestException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -18,9 +19,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,26 +34,26 @@ public class RESTEndpointTest {
     private Code existingCode, newCode;
 
     @Mock
-    private CodeSets mockCodeSets;
+    private Service mockService;
 
 
     @Before
     public void init() {
-        testedRESTEndpoint = new RESTEndpoint(mockCodeSets);
+        testedRESTEndpoint = new RESTEndpoint(mockService);
         existingCodeSet = new CodeSet("CS01", "desc", newHashSet());
         newCodeSet = new CodeSet("CS02", "desc", newHashSet());
         existingCode = new Code("C01", "desc", newHashMap());
         existingCodeSet.addOrUpdate(existingCode);
         newCode = new Code("C02", "desc", newHashMap());
 
-        when(mockCodeSets.withName(existingCodeSet.name()))
+        when(mockService.codeSetWithName(existingCodeSet.name()))
                 .thenReturn(Optional.of(existingCodeSet));
     }
 
     @Test
     public void queryingAllReturnsCodeSetsAll() {
         Set<CodeSet> whateverCodeSetsReturns = newHashSet();
-        when(mockCodeSets.all()).thenReturn(whateverCodeSetsReturns);
+        when(mockService.allCodeSets()).thenReturn(whateverCodeSetsReturns);
 
         Set<CodeSet> whatEndpointReturns = testedRESTEndpoint.all();
 
@@ -87,14 +86,13 @@ public class RESTEndpointTest {
     public void addingOrUpdatingCodeSetAddsOrUpdatesGivenCodeSetToCodeSets() {
         testedRESTEndpoint.addOrUpdate(existingCodeSet.name(), existingCodeSet);
 
-        verify(mockCodeSets).addOrUpdate(existingCodeSet);
+        verify(mockService).addOrUpdate(existingCodeSet);
     }
 
-    @Test
-    public void addingOrUpdatingCodeSetReturnsBadRequestIfGivenCodeSetNameIsDifferentThanNameInCodeSet() {
-        assertThat(testedRESTEndpoint
-                        .addOrUpdate("different", existingCodeSet).getStatus(),
-                is(BAD_REQUEST.getStatusCode()));
+    @Test(expected = BadRequestException.class)
+    public void addingOrUpdatingCodeSetWithDifferentResourceNameInPathThanInActualCodeSetIsBRE() {
+        testedRESTEndpoint
+                .addOrUpdate("different", existingCodeSet).getStatus();
     }
 
     @Test
@@ -115,8 +113,8 @@ public class RESTEndpointTest {
                 is(CREATED.getStatusCode()));
     }
 
-    @Test
-    public void addingCodeToCodeSetReturnsBadRequestIfGivenCodeNameIsDifferentThanNameInCode() {
+    @Test(expected = BadRequestException.class)
+    public void addingCodeToCodeSetWithDifferentResourceNameInPathThanResourceIsBRE() {
         assertThat(testedRESTEndpoint.addOrUpdateCodeSetsCode(
                         existingCodeSet.name(),
                         "differentCodeName",
@@ -124,15 +122,17 @@ public class RESTEndpointTest {
                 is(BAD_REQUEST.getStatusCode()));
     }
 
-    @Test
-    public void addingCodeToNonExistentCodeSetReturnsBadRequest() {
-        assumeNoCodeSetIsFoundWithName();
+    @SuppressWarnings("unchecked")
+    @Test(expected = BadRequestException.class)
+    public void addingCodeToNonExistentCodeSetIsBRE() {
+        when(mockService.addOrUpdateCodeSetsCode(
+                any(String.class), any(Code.class)))
+                .thenThrow(IllegalArgumentException.class);
 
-        assertThat(testedRESTEndpoint.addOrUpdateCodeSetsCode(
-                        "nonExistentCodeSetName",
-                        newCode.name(),
-                        newCode).getStatus(),
-                is(BAD_REQUEST.getStatusCode()));
+        testedRESTEndpoint.addOrUpdateCodeSetsCode(
+                "nonExistentCodeSetName",
+                newCode.name(),
+                newCode).getStatus();
     }
 
     @Test
@@ -140,7 +140,7 @@ public class RESTEndpointTest {
         testedRESTEndpoint.addOrUpdateCodeSetsCode(existingCodeSet.name(),
                 newCode.name(), newCode);
 
-        assertThat(existingCodeSet.code(newCode.name()), is(newCode));
+        verify(mockService).addOrUpdateCodeSetsCode(existingCodeSet.name(), newCode);
     }
 
     @Test
@@ -154,6 +154,9 @@ public class RESTEndpointTest {
 
     @Test
     public void updatingCodeInCodeSetReturnsNoContent() {
+        when(mockService.addOrUpdateCodeSetsCode(
+                any(String.class), any(Code.class)))
+                .thenReturn(true);
         assertThat(testedRESTEndpoint.addOrUpdateCodeSetsCode(
                         existingCodeSet.name(),
                         existingCode.name(),
@@ -171,14 +174,14 @@ public class RESTEndpointTest {
     public void clearingCodeSetsRemovesAllCodeSets() {
         testedRESTEndpoint.clear();
 
-        verify(mockCodeSets).removeAll();
+        verify(mockService).clearCodeSets();
     }
 
     @Test
     public void removingNamedCodeSetDelegatesRemovalToCodeSets() {
         testedRESTEndpoint.removeWithName(existingCodeSet.name());
 
-        verify(mockCodeSets).removeWithName(existingCodeSet.name());
+        verify(mockService).removeCodeSetWithName(existingCodeSet.name());
     }
 
     @Test
@@ -191,7 +194,8 @@ public class RESTEndpointTest {
     @Test
     public void removingCodeInCodeSetReturnsNoContent() {
         assertThat(testedRESTEndpoint.removeCodeSetsCode(
-                        existingCodeSet.name(), existingCode.name()).getStatus(),
+                        existingCodeSet.name(), existingCode.name())
+                        .getStatus(),
                 is(NO_CONTENT.getStatusCode()));
     }
 
@@ -200,15 +204,17 @@ public class RESTEndpointTest {
         testedRESTEndpoint.removeCodeSetsCode(
                 existingCodeSet.name(), existingCode.name());
 
-        assertThat(existingCodeSet.codes(), not(contains(existingCode)));
+        verify(mockService).removeCodeSetsCode(
+                existingCodeSet.name(), existingCode.name());
     }
 
 
     private void assumeNoCodeSetIsFoundWithName() {
-        when(mockCodeSets.withName(any(String.class))).thenReturn(empty());
+        when(mockService.codeSetWithName(any(String.class)))
+                .thenReturn(empty());
     }
 
     private void assumeCodeSetIsUpdated() {
-        when(mockCodeSets.addOrUpdate(any(CodeSet.class))).thenReturn(true);
+        when(mockService.addOrUpdate(any(CodeSet.class))).thenReturn(true);
     }
 }

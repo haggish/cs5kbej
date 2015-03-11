@@ -4,6 +4,7 @@ import com.google.inject.persist.Transactional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -28,28 +29,26 @@ import static javax.ws.rs.core.Response.status;
 @Path("codesets")
 public class RESTEndpoint {
 
-    private final CodeSets codeSets;
+    private final Service service;
 
 
     @Inject
-    public RESTEndpoint(final CodeSets codeSets) {
-        this.codeSets = codeSets;
+    public RESTEndpoint(final Service service) {
+        this.service = service;
     }
 
 
     @GET
     @Produces(APPLICATION_JSON)
-    @Transactional
     public Set<CodeSet> all() {
-        return codeSets.all();
+        return service.allCodeSets();
     }
 
     @GET
     @Path("/{name}")
     @Produces(APPLICATION_JSON)
-    @Transactional
     public Response withName(@PathParam("name") String name) {
-        Optional<CodeSet> possibleCodeSet = codeSets.withName(name);
+        Optional<CodeSet> possibleCodeSet = service.codeSetWithName(name);
         if (possibleCodeSet.isPresent()) {
             return ok(possibleCodeSet.get()).build();
         } else {
@@ -60,14 +59,11 @@ public class RESTEndpoint {
     @PUT
     @Path("/{name}")
     @Consumes(APPLICATION_JSON)
-    @Transactional
     public Response addOrUpdate(@PathParam("name") String codeSetName,
                                 CodeSet codeSet) {
-        if (!codeSet.name().equals(codeSetName)) {
-            return status(BAD_REQUEST).build();
-        }
+        crossCheck(codeSetName, codeSet.name());
 
-        boolean update = codeSets.addOrUpdate(codeSet);
+        boolean update = service.addOrUpdate(codeSet);
 
         return update ? noContent().build() : status(CREATED).build();
     }
@@ -75,50 +71,49 @@ public class RESTEndpoint {
     @PUT
     @Path("/{codeSetName}/{codeName}")
     @Consumes(APPLICATION_JSON)
-    @Transactional
     public Response addOrUpdateCodeSetsCode(
             @PathParam("codeSetName") String codeSetName,
-            @PathParam("codeName") String codeName,
+            @PathParam("codeName") String codeNameInPath,
             Code code) {
+        crossCheck(code.name(), codeNameInPath);
 
-        if (!code.name().equals(codeName)) {
-            return status(BAD_REQUEST).build();
-        }
-        Optional<CodeSet> possibleCodeSet = codeSets.withName(codeSetName);
-        if (possibleCodeSet.isPresent()) {
-            CodeSet codeSet = possibleCodeSet.get();
-            boolean update = codeSet.addOrUpdate(code);
+        try {
+            boolean update = service.addOrUpdateCodeSetsCode(codeSetName, code);
+
             return update ? noContent().build() : status(CREATED).build();
-        } else {
-            return status(BAD_REQUEST).build();
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e);
         }
     }
 
     @DELETE
-    @Transactional
     public Response clear() {
-        codeSets.removeAll();
+        service.clearCodeSets();
         return status(NO_CONTENT).build();
     }
 
     @DELETE
     @Path("/{name}")
-    @Transactional
     public Response removeWithName(@PathParam("name") String name) {
-        codeSets.removeWithName(name);
+        service.removeCodeSetWithName(name);
         return status(NO_CONTENT).build();
     }
 
     @DELETE
     @Path("/{codeSetName}/{codeName}")
-    @Transactional
     public Response removeCodeSetsCode(
             @PathParam("codeSetName") String codeSetName,
             @PathParam("codeName") String codeName) {
-        Optional<CodeSet> possibleCodeSet = codeSets.withName(codeSetName);
-        if (possibleCodeSet.isPresent()) {
-            possibleCodeSet.get().remove(codeName);
-        }
+        service.removeCodeSetsCode(codeSetName, codeName);
         return status(NO_CONTENT).build();
+    }
+
+
+    private void crossCheck(String resourceNameInPath, String resourceName) {
+        if (!resourceNameInPath.equals(resourceName)) {
+            throw new BadRequestException(
+                    "Resource name in path does not " +
+                            "match with the actual resource name");
+        }
     }
 }
