@@ -55,7 +55,7 @@ public class RESTEndpointTest {
         Set<CodeSet> whateverCodeSetsReturns = newHashSet();
         when(mockService.allCodeSets()).thenReturn(whateverCodeSetsReturns);
 
-        Set<CodeSet> whatEndpointReturns = testedRESTEndpoint.all();
+        Set<CodeSet> whatEndpointReturns = testedRESTEndpoint.allCodeSets();
 
         assertThat(whatEndpointReturns, is(whateverCodeSetsReturns));
     }
@@ -63,14 +63,14 @@ public class RESTEndpointTest {
     @Test
     public void queryingByNameReturnsOKIfCodeSetIsPresentInCodeSets() {
         assertThat(
-                testedRESTEndpoint.withName(existingCodeSet.name()).getStatus(),
+                testedRESTEndpoint.codeSetWithName(existingCodeSet.name()).getStatus(),
                 is(OK.getStatusCode()));
     }
 
     @Test
     public void queryingByNameReturnsCodeSetInBodyIfPresentInCodeSets() {
         assertThat(
-                testedRESTEndpoint.withName(existingCodeSet.name()).getEntity(),
+                testedRESTEndpoint.codeSetWithName(existingCodeSet.name()).getEntity(),
                 is(existingCodeSet));
     }
 
@@ -78,7 +78,7 @@ public class RESTEndpointTest {
     public void queryingByNameReturnsNotFoundIfCodeSetNotPresentInCodeSets() {
         assumeNoCodeSetIsFoundWithName();
 
-        assertThat(testedRESTEndpoint.withName("nonExisting").getStatus(),
+        assertThat(testedRESTEndpoint.codeSetWithName("nonExisting").getStatus(),
                 is(NOT_FOUND.getStatusCode()));
     }
 
@@ -166,27 +166,27 @@ public class RESTEndpointTest {
 
     @Test
     public void clearingCodeSetsReturnsNoContent() {
-        assertThat(testedRESTEndpoint.clear().getStatus(),
+        assertThat(testedRESTEndpoint.clearCodeSets().getStatus(),
                 is(NO_CONTENT.getStatusCode()));
     }
 
     @Test
     public void clearingCodeSetsRemovesAllCodeSets() {
-        testedRESTEndpoint.clear();
+        testedRESTEndpoint.clearCodeSets();
 
         verify(mockService).clearCodeSets();
     }
 
     @Test
     public void removingNamedCodeSetDelegatesRemovalToCodeSets() {
-        testedRESTEndpoint.removeWithName(existingCodeSet.name());
+        testedRESTEndpoint.removeCodeSetWithName(existingCodeSet.name());
 
         verify(mockService).removeCodeSetWithName(existingCodeSet.name());
     }
 
     @Test
     public void removingCodeSetReturnsNoContent() {
-        assertThat(testedRESTEndpoint.removeWithName(
+        assertThat(testedRESTEndpoint.removeCodeSetWithName(
                         existingCodeSet.name()).getStatus(),
                 is(NO_CONTENT.getStatusCode()));
     }

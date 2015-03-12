@@ -1,7 +1,5 @@
 package org.katastrofi.cs5k;
 
-import com.google.inject.persist.Transactional;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.BadRequestException;
@@ -17,7 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
@@ -40,14 +37,14 @@ public class RESTEndpoint {
 
     @GET
     @Produces(APPLICATION_JSON)
-    public Set<CodeSet> all() {
+    public Set<CodeSet> allCodeSets() {
         return service.allCodeSets();
     }
 
     @GET
     @Path("/{name}")
     @Produces(APPLICATION_JSON)
-    public Response withName(@PathParam("name") String name) {
+    public Response codeSetWithName(@PathParam("name") String name) {
         Optional<CodeSet> possibleCodeSet = service.codeSetWithName(name);
         if (possibleCodeSet.isPresent()) {
             return ok(possibleCodeSet.get()).build();
@@ -59,9 +56,9 @@ public class RESTEndpoint {
     @PUT
     @Path("/{name}")
     @Consumes(APPLICATION_JSON)
-    public Response addOrUpdate(@PathParam("name") String codeSetName,
+    public Response addOrUpdate(@PathParam("name") String codeSetNameInPath,
                                 CodeSet codeSet) {
-        crossCheck(codeSetName, codeSet.name());
+        crossCheck(codeSetNameInPath, codeSet.name());
 
         boolean update = service.addOrUpdate(codeSet);
 
@@ -87,14 +84,14 @@ public class RESTEndpoint {
     }
 
     @DELETE
-    public Response clear() {
+    public Response clearCodeSets() {
         service.clearCodeSets();
         return status(NO_CONTENT).build();
     }
 
     @DELETE
     @Path("/{name}")
-    public Response removeWithName(@PathParam("name") String name) {
+    public Response removeCodeSetWithName(@PathParam("name") String name) {
         service.removeCodeSetWithName(name);
         return status(NO_CONTENT).build();
     }
